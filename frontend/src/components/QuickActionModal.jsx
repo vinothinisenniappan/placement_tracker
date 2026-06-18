@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
 
 const initialForms = {
   coding: {
+    quantity: 1,
+    problemNames: [''],
     problemName: '',
     platform: 'LeetCode',
     difficulty: 'Easy',
@@ -27,6 +29,14 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setForm(initialForms[logType]);
+      setError('');
+    }
+  }, [isOpen, logType]);
+
   if (!isOpen) return null;
 
   const handleTypeChange = (type) => {
@@ -40,6 +50,38 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleQuantityChange = (event) => {
+    const qty = Math.max(1, parseInt(event.target.value, 10) || 1);
+    setForm((prev) => {
+      const currentNames = prev.problemNames || [prev.problemName || ''];
+      const nextNames = [...currentNames];
+      while (nextNames.length < qty) {
+        nextNames.push('');
+      }
+      if (nextNames.length > qty) {
+        nextNames.splice(qty);
+      }
+      return {
+        ...prev,
+        quantity: qty,
+        problemNames: nextNames,
+        problemName: nextNames[0] || '',
+      };
+    });
+  };
+
+  const handleProblemNameChange = (index, value) => {
+    setForm((prev) => {
+      const nextNames = [...(prev.problemNames || [''])];
+      nextNames[index] = value;
+      return {
+        ...prev,
+        problemNames: nextNames,
+        problemName: nextNames[0] || '',
+      };
+    });
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -47,7 +89,23 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
 
     try {
       if (logType === 'coding') {
-        await api.post('/coding', form);
+        const qty = form.quantity || 1;
+        const names = form.problemNames || [form.problemName || ''];
+        const baseName = names[0]?.trim() || 'Coding Problem';
+
+        const promises = [];
+        for (let i = 0; i < qty; i++) {
+          const pName = names[i]?.trim() || (i === 0 ? baseName : `${baseName} (${i + 1})`);
+          promises.push(
+            api.post('/coding', {
+              problemName: pName,
+              platform: form.platform,
+              difficulty: form.difficulty,
+              solvedAt: form.solvedAt,
+            })
+          );
+        }
+        await Promise.all(promises);
       } else if (logType === 'sql') {
         await api.post('/sql', form);
       } else {
@@ -66,7 +124,7 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border border-slate-100 bg-white p-6 shadow-card-hover">
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-100 bg-white p-6 shadow-card-hover">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Quick Log Entry</h2>
           <button
@@ -94,7 +152,27 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {logType === 'coding' && (
             <>
-              <Input label="Problem Name" name="problemName" value={form.problemName} onChange={handleChange} required />
+              <Input
+                label="Number of Problems Solved"
+                name="quantity"
+                type="number"
+                min="1"
+                max="15"
+                value={form.quantity || 1}
+                onChange={handleQuantityChange}
+                required
+              />
+              {(form.problemNames || ['']).map((name, index) => (
+                <Input
+                  key={index}
+                  label={form.quantity > 1 ? `Problem Name #${index + 1}` : "Problem Name"}
+                  name={`problemName_${index}`}
+                  value={name}
+                  onChange={(e) => handleProblemNameChange(index, e.target.value)}
+                  required={index === 0}
+                  placeholder={index > 0 ? `e.g. Problem Name (defaults to "${form.problemNames[0] || 'Coding Problem'} (${index + 1})")` : "e.g. Two Sum"}
+                />
+              ))}
               <Select
                 label="Platform"
                 name="platform"
@@ -172,7 +250,7 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
   );
 };
 
-const Input = ({ label, name, value, onChange, type = 'text', required = false }) => (
+const Input = ({ label, name, value, onChange, type = 'text', required = false, ...props }) => (
   <label className="block text-sm font-medium text-slate-700">
     {label}
     <input
@@ -182,6 +260,7 @@ const Input = ({ label, name, value, onChange, type = 'text', required = false }
       onChange={onChange}
       required={required}
       className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+      {...props}
     />
   </label>
 );
