@@ -79,9 +79,15 @@ const Dashboard = () => {
                 accent="secondary"
               />
               <MetricCard
-                title="Applications"
+                title="Core subjects"
                 value={stats.metrics.totalApplications}
-                subtitle="Companies applied to"
+                subtitle="Topics covered"
+                accent="emerald"
+              />
+              <MetricCard
+                title="Aptitude"
+                value={stats.metrics.totalAptitude}
+                subtitle="Sums practised"
                 accent="emerald"
               />
               <MetricCard

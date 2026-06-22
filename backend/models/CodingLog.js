@@ -15,7 +15,7 @@ const codingLogSchema = new mongoose.Schema(
     },
     platform: {
       type: String,
-      enum: ['LeetCode', 'HackerRank', 'GeeksforGeeks'],
+      enum: ['LeetCode', 'HackerRank', 'GeeksforGeeks','Others'],
       required: [true, 'Platform is required'],
     },
     difficulty: {

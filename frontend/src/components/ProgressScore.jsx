@@ -25,15 +25,17 @@ const ProgressScore = ({ readinessScore, codingProgress, sqlProgress, appProgres
         color="bg-secondary"
       />
       <ProgressBar
-        label={`Applications (${goals?.applications || 20} goal)`}
+        label={`Core (${goals?.applications || 20} goal)`}
+        value={appProgress}
+        color="bg-emerald-500"
+      />
+      <ProgressBar
+        label={`Aptitude (${goals?.applications || 70} goal)`}
         value={appProgress}
         color="bg-emerald-500"
       />
     </div>
 
-    <p className="mt-4 text-xs leading-relaxed text-slate-500">
-      Score = (Coding % × 0.4) + (SQL % × 0.3) + (Applications % × 0.3)
-    </p>
   </div>
 );
 

@@ -108,6 +108,10 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
         await Promise.all(promises);
       } else if (logType === 'sql') {
         await api.post('/sql', form);
+      } else if (logType === 'core') {
+        await api.post('/core', form);
+      } else if (logType === 'aps') {
+        await api.post('/aps', form);
       } else {
         await api.post('/jobs', form);
       }
@@ -145,7 +149,11 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
           >
             <option value="coding">Coding Problem</option>
             <option value="sql">SQL Topic</option>
-            <option value="job">Job Application</option>
+            <option value="core">DBMS</option>
+            <option value="core">OS</option>
+            <option value="core">CN</option>
+            <option value="core">DSA</option>
+            <option value="aps">Aptitude</option>
           </select>
         </label>
 
@@ -178,7 +186,7 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
                 name="platform"
                 value={form.platform}
                 onChange={handleChange}
-                options={['LeetCode', 'HackerRank', 'GeeksforGeeks']}
+                options={['LeetCode', 'HackerRank', 'GeeksforGeeks','Others']}
               />
               <Select
                 label="Difficulty"
@@ -211,6 +219,25 @@ const QuickActionModal = ({ isOpen, onClose, onSuccess }) => {
             </>
           )}
 
+          {logType === 'core' && (
+            <>
+              <Input label="Topic Name" name="topicName" value={form.topicName} onChange={handleChange} required />
+              <Select
+                label="Status"
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                options={['In Progress', 'Completed']}
+              />
+              <Select
+                label="Confidence Level"
+                name="confidenceLevel"
+                value={form.confidenceLevel}
+                onChange={handleChange}
+                options={['Low', 'Medium', 'High']}
+              />
+            </>
+          )}
           {logType === 'job' && (
             <>
               <Input label="Company" name="company" value={form.company} onChange={handleChange} required />
